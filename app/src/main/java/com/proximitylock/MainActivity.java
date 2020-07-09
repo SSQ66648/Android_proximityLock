@@ -28,6 +28,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -43,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
     private Sensor proximitySensor;
     private SensorEventListener proximityEventListener;
 
+    //layout views
+    private TextView sensorValueText;
+
 
     //--------------------------------------
     // lifecycle
@@ -53,6 +57,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //initialise views
+        sensorValueText = findViewById(R.id.txt_prox_distance);
+
+        //create sensor and manager
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         proximitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
 
@@ -70,7 +78,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 Log.d(TAG, "onSensorChanged: ");
+
                 //testing:
+                Log.d(TAG, "onSensorChanged: sensor value: " + event.values[0]);
+                //display raw senor value
+                sensorValueText.setText(String.format("Proximity value:\n%s", event.values[0]));
+
                 //if detected proximity less than max range: change background colour
                 if (event.values[0] < proximitySensor.getMaximumRange()) {
                     Log.d(TAG, "onSensorChanged: value below max range: trigger");
