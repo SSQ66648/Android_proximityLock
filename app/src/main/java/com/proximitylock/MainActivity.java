@@ -6,11 +6,10 @@
  *              proximity sensor.
  * *************************************************************************************************
  * Notes:
- *          +
+ *      +   Test device (VFD 710: API 26) only has binary proximity sensor so exact value cannot be
+ *          refined to help prevent accidental triggering.
  * *************************************************************************************************
  * Major to-do list:
- *          +   todo display distance from sensor
- *          +   todo find limit for trigger lock
  *          +   todo lock screen
  *          +   todo move process to (foreground) service
  *          +   todo (further) prevent proximity lock from triggering if other app is using sensor
@@ -27,6 +26,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -113,4 +113,31 @@ public class MainActivity extends AppCompatActivity {
         //unregister listener
         sensorManager.unregisterListener(proximityEventListener);
     }
+
+
+    //--------------------------------------
+    // methods
+    //--------------------------------------
+
+    private PowerManager powerManager;
+    private PowerManager.WakeLock wakeLock;
+
+    public void screenOff() {
+        Log.d(TAG, "screenOff: ");
+
+        wakeLock = powerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, "ProximityLock:SleepWakeLock");
+        wakeLock.acquire(1 * 60 * 1000L /*1 minutes*/);
+    }
+
+    public void screenOn() {
+        Log.d(TAG, "screenOn: ");
+        wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK |
+                PowerManager.ACQUIRE_CAUSES_WAKEUP, "ProximityLock:AwakeWakeLock");
+        wakeLock.acquire(1 * 60 * 1000L /*1 minutes*/);
+
+    }
+
+
+    //
+
 }
