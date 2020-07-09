@@ -21,12 +21,14 @@
 
 package com.proximitylock;
 
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -88,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
                 if (event.values[0] < proximitySensor.getMaximumRange()) {
                     Log.d(TAG, "onSensorChanged: value below max range: trigger");
                     getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.RED));
+
+                    Log.d(TAG, "onSensorChanged: calling screenOff");
+                    screenOff();
                 } else {
                     Log.d(TAG, "onSensorChanged: value exceeds max range: revert");
                     getWindow().getDecorView().setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.GREEN));
@@ -101,6 +106,13 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume: registering listener");
         //register listener with manager
         // TODO: 08/07/2020 read up on sampling period for listeners
         sensorManager.registerListener(proximityEventListener, proximitySensor, 2 * 1000 * 1000);
@@ -120,20 +132,23 @@ public class MainActivity extends AppCompatActivity {
     //--------------------------------------
 
     private PowerManager powerManager;
-    private PowerManager.WakeLock wakeLock;
+    private WakeLock wakeLock;
 
     public void screenOff() {
         Log.d(TAG, "screenOff: ");
 
+        powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        Log.d(TAG, "screenOff: powerManager created");
         wakeLock = powerManager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, "ProximityLock:SleepWakeLock");
-        wakeLock.acquire(1 * 60 * 1000L /*1 minutes*/);
+        Log.d(TAG, "screenOff: wakeLock created");
+        wakeLock.acquire(1 * 10 * 1000L /*10 seconds*/);
     }
 
     public void screenOn() {
         Log.d(TAG, "screenOn: ");
         wakeLock = powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK |
                 PowerManager.ACQUIRE_CAUSES_WAKEUP, "ProximityLock:AwakeWakeLock");
-        wakeLock.acquire(1 * 60 * 1000L /*1 minutes*/);
+        wakeLock.acquire(1 * 10 * 1000L /*10 seconds*/);
 
     }
 
